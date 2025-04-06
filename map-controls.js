@@ -3,19 +3,20 @@ import { map, addMarker, markerLayer, markers, removeMarker } from './map-config
 // Elementos da UI
 const panelToggle = document.getElementById('panel-toggle');
 const sidePanel = document.getElementById('side-panel');
-const mapElement = document.getElementById('map');
 const contextMenu = document.getElementById('context-menu');
+const nameModal = document.getElementById('name-modal');
+const markerNameInput = document.getElementById('marker-name');
+const saveNameBtn = document.getElementById('save-name');
+const closeModal = document.querySelector('.close-modal');
+
+// Variáveis de estado
 let lastRightClickCoordinate = null;
+let pendingCoordinate = null;
 
 // Controle do painel lateral
 panelToggle.addEventListener('click', () => {
     sidePanel.classList.toggle('open');
-    mapElement.classList.toggle('map-with-panel-open');
-    updateMarkersList(); // Atualiza a lista ao abrir o painel
-
-    setTimeout(() => {
-        map.updateSize();
-    }, 300);
+    map.updateSize();
 });
 
 // Controles de zoom
@@ -49,62 +50,87 @@ map.getViewport().addEventListener('contextmenu', (evt) => {
     contextMenu.style.top = `${evt.clientY}px`;
 });
 
-document.addEventListener('click', () => {
-    contextMenu.style.display = 'none';
+// Fechar menu ao clicar em qualquer lugar
+document.addEventListener('click', (evt) => {
+    if (!contextMenu.contains(evt.target)) {
+        contextMenu.style.display = 'none';
+    }
+});
+
+// Modal para nomear pontos
+function openNameModal(coordinate) {
+    pendingCoordinate = coordinate;
+    markerNameInput.value = `Ponto ${markers.length + 1}`;
+    nameModal.style.display = 'block';
+}
+
+function closeNameModal() {
+    nameModal.style.display = 'none';
+    pendingCoordinate = null;
+}
+
+closeModal.addEventListener('click', closeNameModal);
+saveNameBtn.addEventListener('click', () => {
+    if (pendingCoordinate) {
+        const name = markerNameInput.value.trim() || `Ponto ${markers.length + 1}`;
+        addMarker(pendingCoordinate, name);
+        updateMarkersList();
+        closeNameModal();
+    }
 });
 
 // Adicionar marcadores
 map.on('click', (evt) => {
     const coordinate = ol.proj.toLonLat(evt.coordinate);
-    addMarker(coordinate);
-    updateMarkersList();
+    openNameModal(coordinate);
 });
 
 document.getElementById('mark-location').addEventListener('click', () => {
     if (lastRightClickCoordinate) {
         const coordinate = ol.proj.toLonLat(lastRightClickCoordinate);
-        addMarker(coordinate);
-        updateMarkersList();
+        openNameModal(coordinate);
     }
     contextMenu.style.display = 'none';
 });
 
-// Função para atualizar a lista de marcadores
+// Atualizar lista de marcadores
 function updateMarkersList() {
     const listContainer = document.getElementById('markers-list');
+    listContainer.innerHTML = '';
 
     if (markers.length === 0) {
         listContainer.innerHTML = '<p class="empty-message">Nenhum ponto marcado ainda</p>';
         return;
     }
 
-    listContainer.innerHTML = '';
-    markers.forEach((marker, index) => {
-        const coord = marker.get('coord');
+    markers.forEach(marker => {
         const item = document.createElement('div');
         item.className = 'marker-item';
         item.innerHTML = `
-            <span>Ponto ${index + 1}</span>
-            <span class="delete-marker" data-id="${marker.get('id')}">×</span>
+            <span>${marker.name}</span>
+            <span class="delete-marker" data-id="${marker.id}">×</span>
             <div class="marker-coords">
-                Lon: ${coord[0].toFixed(4)}, Lat: ${coord[1].toFixed(4)}
+                Lon: ${marker.coordinate[0].toFixed(4)}, Lat: ${marker.coordinate[1].toFixed(4)}
             </div>
         `;
         listContainer.appendChild(item);
 
+        // Centralizar ao clicar no item
         item.addEventListener('click', (e) => {
             if (!e.target.classList.contains('delete-marker')) {
-                map.getView().setCenter(ol.proj.fromLonLat(coord));
+                map.getView().setCenter(ol.proj.fromLonLat(marker.coordinate));
                 map.getView().setZoom(15);
             }
         });
 
-        document.querySelectorAll('.delete-marker').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                removeMarker(parseInt(btn.getAttribute('data-id')));
-                updateMarkersList();
-            });
+        // Deletar marcador
+        item.querySelector('.delete-marker').addEventListener('click', (e) => {
+            e.stopPropagation();
+            removeMarker(marker.id);
+            updateMarkersList();
         });
     });
 }
+
+// Inicialização
+updateMarkersList();

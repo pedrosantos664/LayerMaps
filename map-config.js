@@ -14,9 +14,7 @@ export const map = new ol.Map({
 
 // Camada de marcadores
 export const markerLayer = new ol.layer.Vector({
-    name: 'markers',
-    source: new ol.source.Vector(),
-    zIndex: 10
+    source: new ol.source.Vector()
 });
 map.addLayer(markerLayer);
 
@@ -24,11 +22,13 @@ map.addLayer(markerLayer);
 export const markers = [];
 
 // Função para adicionar marcador
-export function addMarker(coordinate, id = Date.now()) {
+export function addMarker(coordinate, name = `Ponto ${markers.length + 1}`) {
+    const id = Date.now();
+
     const marker = new ol.Feature({
         geometry: new ol.geom.Point(ol.proj.fromLonLat(coordinate)),
-        id: id,
-        coord: coordinate
+        name: name,
+        id: id
     });
 
     marker.setStyle(new ol.style.Style({
@@ -42,7 +42,7 @@ export function addMarker(coordinate, id = Date.now()) {
     }));
 
     markerLayer.getSource().addFeature(marker);
-    markers.push(marker);
+    markers.push({ id, name, coordinate });
     return marker;
 }
 
@@ -53,7 +53,7 @@ export function removeMarker(id) {
 
     if (feature) {
         source.removeFeature(feature);
-        const index = markers.findIndex(m => m.get('id') === id);
+        const index = markers.findIndex(m => m.id === id);
         if (index !== -1) {
             markers.splice(index, 1);
         }
