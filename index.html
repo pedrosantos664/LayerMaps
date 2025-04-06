@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mapa OpenLayers Modular</title>
+    <title>Mapa OpenLayers com Painel de Marcadores</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ol@v9.2.4/ol.css">
     <link rel="stylesheet" href="css/style.css">
 </head>
@@ -12,13 +12,15 @@
 <body>
     <div id="map-container">
         <div id="controls">
-            <button id="zoom-in">Zoom +</button>
-            <button id="zoom-out">Zoom -</button>
+            <button id="zoom-in">+</button>
+            <button id="zoom-out">-</button>
             <button id="center-map">Centralizar</button>
             <div id="coordinates">Coordenadas: </div>
         </div>
         <div id="map"></div>
     </div>
+
+    <!-- Menu de contexto (botão direito) -->
     <div id="context-menu" class="context-menu">
         <ul>
             <li id="mark-location">Marcar local</li>
@@ -26,27 +28,23 @@
         </ul>
     </div>
 
+    <!-- Botão para abrir/fechar painel lateral -->
     <button id="panel-toggle" class="menu-toggle">☰ Menu</button>
 
+    <!-- Painel lateral (corrigido - removi a duplicação) -->
     <div id="side-panel" class="side-panel">
-        <div id="side-panel" class="side-panel">
-            <div class="side-panel-content">
-                <h3>Pontos Marcados</h3>
-                <div id="markers-list">
-                    <!-- Os pontos serão listados aqui -->
-                    <p class="empty-message">Nenhum ponto marcado ainda</p>
-                </div>
+        <div class="side-panel-content">
+            <h3>Pontos Marcados</h3>
+            <div id="markers-list">
+                <p class="empty-message">Nenhum ponto marcado ainda</p>
             </div>
         </div>
     </div>
 
-
-
+    <!-- Scripts (mantive os módulos como você tinha) -->
     <script src="https://cdn.jsdelivr.net/npm/ol@v9.2.4/dist/ol.js"></script>
     <script src="map-config.js" type="module"></script>
     <script src="map-controls.js" type="module"></script>
-
-
 </body>
 
 </html>

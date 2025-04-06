@@ -1,4 +1,4 @@
-// Configuração principal do mapa
+// Configuração do mapa
 export const map = new ol.Map({
     target: 'map',
     layers: [
@@ -7,12 +7,12 @@ export const map = new ol.Map({
         })
     ],
     view: new ol.View({
-        center: ol.proj.fromLonLat([-47.8825, -15.7942]), // Brasília
+        center: ol.proj.fromLonLat([-47.8825, -15.7942]),
         zoom: 5
     })
 });
 
-// Camada para marcadores
+// Camada de marcadores
 export const markerLayer = new ol.layer.Vector({
     name: 'markers',
     source: new ol.source.Vector(),
@@ -20,26 +20,11 @@ export const markerLayer = new ol.layer.Vector({
 });
 map.addLayer(markerLayer);
 
+// Array para armazenar os marcadores
+export const markers = [];
+
 // Função para adicionar marcador
-export function addMarker(coordinate) {
-    const marker = new ol.Feature({
-        geometry: new ol.geom.Point(ol.proj.fromLonLat(coordinate))
-    });
-
-    marker.setStyle(new ol.style.Style({
-        image: new ol.style.Circle({
-            radius: 6,
-            fill: new ol.style.Fill({ color: 'red' }),
-            stroke: new ol.style.Stroke({
-                color: 'white', width: 2
-            })
-        })
-    }));
-
-    markerLayer.getSource().addFeature(marker);
-}
-
-export function addMenuMarker(coordinate, id = Date.now()) {
+export function addMarker(coordinate, id = Date.now()) {
     const marker = new ol.Feature({
         geometry: new ol.geom.Point(ol.proj.fromLonLat(coordinate)),
         id: id,
@@ -57,5 +42,20 @@ export function addMenuMarker(coordinate, id = Date.now()) {
     }));
 
     markerLayer.getSource().addFeature(marker);
+    markers.push(marker);
     return marker;
+}
+
+// Função para remover marcador
+export function removeMarker(id) {
+    const source = markerLayer.getSource();
+    const feature = source.getFeatures().find(f => f.get('id') === id);
+
+    if (feature) {
+        source.removeFeature(feature);
+        const index = markers.findIndex(m => m.get('id') === id);
+        if (index !== -1) {
+            markers.splice(index, 1);
+        }
+    }
 }

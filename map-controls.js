@@ -1,32 +1,30 @@
+import { map, addMarker, markerLayer, markers, removeMarker } from './map-config.js';
 
-import { map, addMarker, markerLayer } from './map-config.js';
-
-// Controle do painel lateral
+// Elementos da UI
 const panelToggle = document.getElementById('panel-toggle');
 const sidePanel = document.getElementById('side-panel');
 const mapElement = document.getElementById('map');
+const contextMenu = document.getElementById('context-menu');
+let lastRightClickCoordinate = null;
 
+// Controle do painel lateral
 panelToggle.addEventListener('click', () => {
     sidePanel.classList.toggle('open');
     mapElement.classList.toggle('map-with-panel-open');
+    updateMarkersList(); // Atualiza a lista ao abrir o painel
 
-    // Atualiza o tamanho do mapa (necessário para OpenLayers)
     setTimeout(() => {
         map.updateSize();
-    }, 300); // Espera a transição CSS terminar
+    }, 300);
 });
-
-
 
 // Controles de zoom
 document.getElementById('zoom-in').addEventListener('click', () => {
-    const view = map.getView();
-    view.setZoom(view.getZoom() + 1);
+    map.getView().setZoom(map.getView().getZoom() + 1);
 });
 
 document.getElementById('zoom-out').addEventListener('click', () => {
-    const view = map.getView();
-    view.setZoom(view.getZoom() - 1);
+    map.getView().setZoom(map.getView().getZoom() - 1);
 });
 
 // Centralizar mapa
@@ -42,53 +40,36 @@ map.on('pointermove', (evt) => {
         `Longitude: ${coordinate[0].toFixed(4)}<br>Latitude: ${coordinate[1].toFixed(4)}`;
 });
 
-// Adicionar marcador ao clicar
-map.on('click', (evt) => {
-    const coordinate = ol.proj.toLonLat(evt.coordinate);
-    addMarker(coordinate);
-    console.log(`Marcador adicionado em: ${coordinate[0].toFixed(4)}, ${coordinate[1].toFixed(4)}`);
-});
-// Variável para armazenar a última coordenada clicada
-let lastRightClickCoordinate = null;
-
 // Menu de contexto
-const contextMenu = document.getElementById('context-menu');
-
-// Mostrar menu ao clicar com botão direito
 map.getViewport().addEventListener('contextmenu', (evt) => {
     evt.preventDefault();
     lastRightClickCoordinate = map.getEventCoordinate(evt);
-
-    // Posiciona o menu no local do clique
     contextMenu.style.display = 'block';
     contextMenu.style.left = `${evt.clientX}px`;
     contextMenu.style.top = `${evt.clientY}px`;
 });
 
-// Fechar menu ao clicar em qualquer lugar
 document.addEventListener('click', () => {
     contextMenu.style.display = 'none';
 });
 
-// Opção "Marcar local"
+// Adicionar marcadores
+map.on('click', (evt) => {
+    const coordinate = ol.proj.toLonLat(evt.coordinate);
+    addMarker(coordinate);
+    updateMarkersList();
+});
+
 document.getElementById('mark-location').addEventListener('click', () => {
     if (lastRightClickCoordinate) {
         const coordinate = ol.proj.toLonLat(lastRightClickCoordinate);
         addMarker(coordinate);
+        updateMarkersList();
     }
     contextMenu.style.display = 'none';
 });
 
-// Opção "Remover marcadores"
-document.getElementById('remove-markers').addEventListener('click', () => {
-    markerLayer.getSource().clear();
-    contextMenu.style.display = 'none';
-});
-
-// Array para armazenar os marcadores
-let markers = [];
-
-// Função para atualizar a lista no painel
+// Função para atualizar a lista de marcadores
 function updateMarkersList() {
     const listContainer = document.getElementById('markers-list');
 
@@ -111,53 +92,19 @@ function updateMarkersList() {
         `;
         listContainer.appendChild(item);
 
-        // Adiciona evento para centralizar o marcador ao clicar
         item.addEventListener('click', (e) => {
             if (!e.target.classList.contains('delete-marker')) {
-                const view = map.getView();
-                view.setCenter(ol.proj.fromLonLat(coord));
-                view.setZoom(15);
+                map.getView().setCenter(ol.proj.fromLonLat(coord));
+                map.getView().setZoom(15);
             }
         });
-    });
 
-    // Adiciona eventos para os botões de deletar
-    document.querySelectorAll('.delete-marker').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            const id = parseInt(btn.getAttribute('data-id'));
-            removeMarker(id);
+        document.querySelectorAll('.delete-marker').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                removeMarker(parseInt(btn.getAttribute('data-id')));
+                updateMarkersList();
+            });
         });
     });
 }
-
-// Função para remover marcador
-function removeMarker(id) {
-    const source = markerLayer.getSource();
-    const feature = source.getFeatures().find(f => f.get('id') === id);
-
-    if (feature) {
-        source.removeFeature(feature);
-        markers = markers.filter(m => m.get('id') !== id);
-        updateMarkersList();
-    }
-}
-
-// Modifique o evento de clique para atualizar a lista
-map.on('click', (evt) => {
-    const coordinate = ol.proj.toLonLat(evt.coordinate);
-    const marker = addMarker(coordinate);
-    markers.push(marker);
-    updateMarkersList();
-});
-
-// Modifique a opção do menu de contexto
-document.getElementById('mark-location').addEventListener('click', () => {
-    if (lastRightClickCoordinate) {
-        const coordinate = ol.proj.toLonLat(lastRightClickCoordinate);
-        const marker = addMarker(coordinate);
-        markers.push(marker);
-        updateMarkersList();
-    }
-    contextMenu.style.display = 'none';
-});

@@ -144,3 +144,41 @@ button {
     float: right;
     cursor: pointer;
 }
+
+/* Estilo da lista de marcadores */
+#markers-list {
+    margin-top: 15px;
+}
+
+.marker-item {
+    padding: 8px;
+    border-bottom: 1px solid #eee;
+    cursor: pointer;
+    position: relative;
+}
+
+.marker-item:hover {
+    background-color: #f5f5f5;
+}
+
+.marker-coords {
+    font-size: 0.8em;
+    color: #666;
+}
+
+.empty-message {
+    color: #999;
+    font-style: italic;
+}
+
+.delete-marker {
+    color: #ff4444;
+    float: right;
+    cursor: pointer;
+    font-weight: bold;
+    padding: 0 5px;
+}
+
+.delete-marker:hover {
+    color: #cc0000;
+}
