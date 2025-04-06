@@ -231,3 +231,16 @@ button {
 #save-name:hover {
     background-color: #45a049;
 }
+
+#cancel-name {
+    padding: 8px 16px;
+    background-color: #d32f2f;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+#cancel-name:hover {
+    background-color: #a81f1f;
+}

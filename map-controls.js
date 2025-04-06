@@ -1,17 +1,20 @@
 import { map, addMarker, markerLayer, markers, removeMarker } from './map-config.js';
 
 // Elementos da UI
+
 const panelToggle = document.getElementById('panel-toggle');
 const sidePanel = document.getElementById('side-panel');
 const contextMenu = document.getElementById('context-menu');
 const nameModal = document.getElementById('name-modal');
 const markerNameInput = document.getElementById('marker-name');
 const saveNameBtn = document.getElementById('save-name');
+const cancelNameBtn = document.getElementById('cancel-name');
 const closeModal = document.querySelector('.close-modal');
 
 // Variáveis de estado
 let lastRightClickCoordinate = null;
 let pendingCoordinate = null;
+
 
 // Controle do painel lateral
 panelToggle.addEventListener('click', () => {
@@ -62,14 +65,18 @@ function openNameModal(coordinate) {
     pendingCoordinate = coordinate;
     markerNameInput.value = `Ponto ${markers.length + 1}`;
     nameModal.style.display = 'block';
+    markerNameInput.focus(); // Foca automaticamente no input
 }
+
 
 function closeNameModal() {
     nameModal.style.display = 'none';
     pendingCoordinate = null;
+    markerNameInput.value = '';
 }
 
 closeModal.addEventListener('click', closeNameModal);
+cancelNameBtn.addEventListener('click', closeNameModal);
 saveNameBtn.addEventListener('click', () => {
     if (pendingCoordinate) {
         const name = markerNameInput.value.trim() || `Ponto ${markers.length + 1}`;
